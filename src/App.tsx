@@ -86,13 +86,16 @@ function App() {
           </div>
 
           <div className="mt-2 space-y-2 rounded-xl border border-slate-800 bg-slate-900/70 p-3">
-            <div className="flex items-center justify-between text-xs text-slate-300">
-              <span>Transaction amount</span>
+            <div className="flex items-center justify-between text-xs text-slate-200">
+              <label htmlFor="amount-slider" className="cursor-pointer">
+                Transaction amount
+              </label>
               <span className="tabular-nums text-slate-100">
                 ${amount.toLocaleString('en-US', { maximumFractionDigits: 0 })}
               </span>
             </div>
             <input
+              id="amount-slider"
               type="range"
               min={5}
               max={5000}
@@ -100,8 +103,9 @@ function App() {
               value={amount}
               onChange={(e) => setAmount(parseInt(e.target.value, 10))}
               className="w-full accent-violet-400"
+              aria-describedby="amount-help"
             />
-            <p className="text-[11px] text-slate-500">
+            <p id="amount-help" className="text-[11px] text-slate-300">
               Move the slider to see how fees and economics change at different
               price points.
             </p>
@@ -109,8 +113,10 @@ function App() {
 
           <div className="mt-1 flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/70 px-3 py-2 text-xs">
             <div>
-              <p className="font-medium text-slate-100">Chaos mode</p>
-              <p className="text-[11px] text-slate-500">
+              <p id="chaos-mode-label" className="font-medium text-slate-100">
+                Chaos mode
+              </p>
+              <p id="chaos-mode-help" className="text-[11px] text-slate-300">
                 Simulate failures like declines, timeouts, and NSFs.
               </p>
             </div>
@@ -121,7 +127,9 @@ function App() {
                 'relative inline-flex h-6 w-11 items-center rounded-full border border-slate-700 transition',
                 chaosEnabled ? 'bg-rose-500/70' : 'bg-slate-900',
               ].join(' ')}
-              aria-pressed={chaosEnabled}
+              role="switch"
+              aria-checked={chaosEnabled}
+              aria-labelledby="chaos-mode-label chaos-mode-help"
             >
               <span
                 className={[

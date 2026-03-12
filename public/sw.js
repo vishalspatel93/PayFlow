@@ -1,5 +1,7 @@
 const CACHE_NAME = 'payflow-shell-v1'
-const SHELL_ASSETS = ['/', '/index.html']
+// Use paths relative to the service worker scope so GitHub Pages
+// under /PayFlow/ doesn't cause 404s during cache.addAll.
+const SHELL_ASSETS = ['index.html']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
