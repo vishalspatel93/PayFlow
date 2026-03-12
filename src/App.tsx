@@ -60,7 +60,7 @@ function App() {
               Payment method
             </h2>
             <p className="mt-1 text-xs text-slate-400">
-              Each method has a distinct flow, fee model, and failure profile.
+              Tap a card to see its flow, economics, and failure profile.
             </p>
           </div>
           <div className="flex flex-col gap-2">
@@ -72,22 +72,40 @@ function App() {
                   type="button"
                   onClick={() => setSelectedMethodId(method.id)}
                   className={[
-                    'flex flex-col items-start rounded-xl border px-3 py-2 text-left text-xs transition',
+                    'group relative flex cursor-pointer flex-col items-start rounded-xl border px-3 py-2 text-left text-xs transition',
                     isSelected
-                      ? 'border-violet-500/80 bg-violet-500/15 shadow-sm shadow-violet-500/30'
-                      : 'border-slate-800 bg-slate-900/60 hover:border-slate-700 hover:bg-slate-900',
+                      ? 'border-violet-400/90 bg-gradient-to-r from-violet-500/20 via-slate-900/80 to-slate-900 shadow-sm shadow-violet-500/40'
+                      : 'border-slate-800 bg-slate-950/70 hover:border-slate-700 hover:bg-slate-900/80',
                   ].join(' ')}
+                  aria-pressed={isSelected}
                 >
+                  <span
+                    className={[
+                      'absolute inset-y-1 left-1 w-1 rounded-full bg-gradient-to-b from-violet-400 via-sky-400 to-emerald-400 transition-opacity',
+                      isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-60',
+                    ].join(' ')}
+                    aria-hidden="true"
+                  />
                   <span className="text-[13px] font-medium text-slate-50">
                     {method.name}
                   </span>
                   <span className="mt-0.5 text-[11px] text-slate-400">
                     {method.tagline}
                   </span>
-                  <span className="mt-1 inline-flex items-center gap-1 text-[10px] text-slate-500">
-                    <span className="inline-flex h-1.5 w-1.5 rounded-full bg-sky-400" />
-                    {method.participants.length} participants ·{' '}
-                    {method.steps.length} steps
+                  <span className="mt-1 inline-flex items-center gap-2 text-[10px] text-slate-400">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-slate-700 bg-slate-900/80 px-1.5 py-0.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
+                      <span>
+                        {method.participants.length} participants ·{' '}
+                        {method.steps.length} steps
+                      </span>
+                    </span>
+                    {isSelected && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-violet-500/20 px-1.5 py-0.5 text-[9px] font-semibold text-violet-200">
+                        <span className="h-1.5 w-1.5 rounded-full bg-violet-300" />
+                        Active
+                      </span>
+                    )}
                   </span>
                 </button>
               )
@@ -183,9 +201,14 @@ function App() {
 
           <div className="flex flex-1 flex-col gap-3 md:flex-row">
             {/* Flow canvas placeholder */}
-            <div className="flex flex-1 flex-col gap-3 rounded-xl border border-slate-800 bg-gradient-to-br from-slate-900/80 via-slate-950/60 to-slate-900/80 p-3">
-              <div className="flex items-center justify-between text-[11px] text-slate-400">
-                <span>Transaction graph</span>
+            <div className="flex flex-[1.4] flex-col gap-3 rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900/70 to-slate-950 p-4">
+              <div className="flex items-center justify-between text-[11px] text-slate-300">
+                <span className="inline-flex items-center gap-2">
+                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-slate-900/80 text-[10px] font-semibold text-violet-300 ring-1 ring-violet-500/40">
+                    ▶
+                  </span>
+                  Transaction rail
+                </span>
                 <span className="flex items-center gap-2">
                   <span className="inline-flex items-center gap-1">
                     <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
@@ -202,15 +225,14 @@ function App() {
                 </span>
               </div>
 
-              <div className="relative flex flex-1 items-center justify-center overflow-hidden rounded-lg border border-slate-800 bg-slate-950/80">
-                <div className="pointer-events-none absolute inset-0 opacity-40">
-                  <div className="absolute left-1/2 top-6 h-10 w-px -translate-x-1/2 bg-gradient-to-b from-violet-500/70 via-slate-700 to-transparent" />
-                  <div className="absolute left-6 top-1/2 w-10 -translate-y-1/2 bg-gradient-to-r from-sky-500/60 via-slate-700 to-transparent" />
-                  <div className="absolute bottom-10 right-10 h-16 w-16 rounded-full border border-slate-700/80" />
+              <div className="relative flex flex-1 items-center justify-center overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/90">
+                <div className="pointer-events-none absolute inset-0 opacity-50">
+                  <div className="absolute inset-[-40%] bg-[radial-gradient(circle_at_top,_rgba(129,140,248,0.16),_transparent_55%),radial-gradient(circle_at_bottom_left,_rgba(45,212,191,0.12),_transparent_55%),radial-gradient(circle_at_bottom_right,_rgba(251,113,133,0.12),_transparent_55%)]" />
+                  <div className="absolute inset-0 bg-[linear-gradient(to_right,_rgba(15,23,42,0.7)_1px,_transparent_1px),linear-gradient(to_bottom,_rgba(15,23,42,0.7)_1px,_transparent_1px)] bg-[size:40px_40px]" />
                 </div>
 
                 <motion.div
-                  className="relative grid w-full max-w-xl grid-cols-3 gap-6 text-[11px] text-slate-200"
+                  className="relative grid w-full max-w-2xl grid-cols-4 gap-6 text-[11px] text-slate-200"
                   initial="hidden"
                   animate="visible"
                   variants={{
