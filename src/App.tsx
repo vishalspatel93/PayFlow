@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { paymentMethods } from './config/paymentMethods'
 
 type ViewMode = 'flow' | 'fees' | 'ai'
@@ -8,11 +9,19 @@ function App() {
   const [amount, setAmount] = useState(100)
   const [chaosEnabled, setChaosEnabled] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('flow')
+  const [activeStepIndex, setActiveStepIndex] = useState(0)
 
   const selectedMethod = useMemo(
     () => paymentMethods.find((m) => m.id === selectedMethodId),
     [selectedMethodId],
   )
+
+  const steps = selectedMethod?.steps ?? []
+
+  const handleStepThrough = () => {
+    if (!steps.length) return
+    setActiveStepIndex((idx) => (idx + 1) % steps.length)
+  }
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-slate-950/80 text-slate-50">
@@ -200,7 +209,19 @@ function App() {
                   <div className="absolute bottom-10 right-10 h-16 w-16 rounded-full border border-slate-700/80" />
                 </div>
 
-                <div className="relative grid w-full max-w-xl grid-cols-3 gap-6 text-[11px] text-slate-200">
+                <motion.div
+                  className="relative grid w-full max-w-xl grid-cols-3 gap-6 text-[11px] text-slate-200"
+                  initial="hidden"
+                  animate="visible"
+                  variants={{
+                    hidden: { opacity: 0, y: 16 },
+                    visible: {
+                      opacity: 1,
+                      y: 0,
+                      transition: { staggerChildren: 0.05, delayChildren: 0.05 },
+                    },
+                  }}
+                >
                   <FlowNode label="Customer" variant="primary" />
                   <FlowNode label="Merchant" variant="muted" />
                   <FlowNode label="Gateway" variant="muted" />
@@ -213,7 +234,7 @@ function App() {
                   <div className="pointer-events-none absolute inset-0">
                     <BezierArrow />
                   </div>
-                </div>
+                </motion.div>
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
@@ -230,12 +251,15 @@ function App() {
                   </button>
                   <button
                     type="button"
+                    onClick={handleStepThrough}
                     className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-[11px] text-slate-200 hover:border-slate-500"
                   >
                     Step Through
                   </button>
                 </span>
               </div>
+
+              <AnimatedStepOverlay steps={steps} activeIndex={activeStepIndex} />
             </div>
 
             {/* Right context panel */}
@@ -306,15 +330,22 @@ function FlowNode({
       : 'border-slate-700 bg-slate-900/80 text-slate-100 shadow-black/40'
 
   return (
-    <div className={[base, styles].join(' ')}>
+    <motion.div
+      className={[base, styles].join(' ')}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ scale: 1.03, boxShadow: '0 0 18px rgba(129, 140, 248, 0.4)' }}
+      transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+      layout
+    >
       <span>{label}</span>
-    </div>
+    </motion.div>
   )
 }
 
 function BezierArrow() {
   return (
-    <svg
+    <motion.svg
       className="h-full w-full text-sky-400/70"
       viewBox="0 0 400 240"
       preserveAspectRatio="xMidYMid meet"
@@ -332,15 +363,76 @@ function BezierArrow() {
           <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" />
         </marker>
       </defs>
-      <path
+      <motion.path
         d="M 40 200 C 120 40, 280 40, 360 200"
         fill="none"
         stroke="currentColor"
         strokeWidth="1.2"
         strokeDasharray="4 3"
         markerEnd="url(#arrow)"
+        initial={{ pathLength: 0, strokeOpacity: 0 }}
+        animate={{
+          pathLength: 1,
+          strokeOpacity: 1,
+          strokeDashoffset: [0, -14],
+        }}
+        transition={{
+          duration: 1.2,
+          ease: 'easeInOut',
+          repeat: Infinity,
+          repeatType: 'loop',
+        }}
       />
-    </svg>
+    </motion.svg>
+  )
+}
+
+function AnimatedStepOverlay({
+  steps,
+  activeIndex,
+}: {
+  steps: { id: string; name: string; description: string }[]
+  activeIndex: number
+}) {
+  if (!steps.length) return null
+
+  const step = steps[activeIndex]
+
+  return (
+    <div className="mt-2 flex items-start justify-between rounded-lg border border-slate-800/80 bg-slate-950/80 px-3 py-2 text-[11px] text-slate-200">
+      <div className="flex items-start gap-2">
+        <motion.span
+          className="mt-1 h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_16px_rgba(52,211,153,0.9)]"
+          animate={{ scale: [0.9, 1.3, 0.9], opacity: [0.7, 1, 0.7] }}
+          transition={{ duration: 1.2, repeat: Infinity, repeatType: 'loop' }}
+          aria-hidden="true"
+        />
+        <div>
+          <p className="text-[11px] font-semibold text-emerald-200">
+            Live step preview
+          </p>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step.id}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.18 }}
+            >
+              <p className="mt-0.5 text-[11px] text-slate-100">
+                {step.name}
+              </p>
+              <p className="mt-0.5 text-[11px] text-slate-400">
+                {step.description}
+              </p>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
+      <div className="ml-3 text-[10px] text-slate-500">
+        Step {activeIndex + 1} of {steps.length}
+      </div>
+    </div>
   )
 }
 
